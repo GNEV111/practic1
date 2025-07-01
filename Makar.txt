@@ -1,0 +1,41 @@
+using System;
+using System.IO;
+
+public static class FileDataManager
+{
+    private const string DataFileName = "data.txt";
+
+    public static int[] LoadArray()
+    {
+        string content = File.ReadAllText(DataFileName);
+        return string.IsNullOrWhiteSpace(content) ?
+            Array.Empty<int>() :
+            ParseArray(content);
+    }
+
+    public static void SaveArray(int[] array)
+    {
+        File.WriteAllText(DataFileName, string.Join(" ", array));
+        Console.WriteLine("Массив сохранен.");
+    }
+
+    private static int[] ParseArray(string input)
+    {
+        try
+        {
+            string[] parts = input.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+            int[] newArray = new int[parts.Length];
+
+            for (int i = 0; i < parts.Length; i++)
+                newArray[i] = int.Parse(parts[i]);
+
+            Array.Sort(newArray);
+            return newArray;
+        }
+        catch
+        {
+            Console.WriteLine("Ошибка: вводите только целые числа через пробел.");
+            return Array.Empty<int>();
+        }
+    }
+}
