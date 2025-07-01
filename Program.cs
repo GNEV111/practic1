@@ -1,0 +1,147 @@
+﻿using System;
+using System.IO;
+using System.Diagnostics; // Добавляем для использования Stopwatch
+
+class BinarySearchApp
+{
+    private const string DataFileName = "data.txt";
+    private static int[] array = Array.Empty<int>();
+
+    static void Main()
+    {
+        InitializeDataFile();
+        ShowMenu();
+    }
+
+    static void InitializeDataFile()
+    {
+        if (!File.Exists(DataFileName))
+        {
+            File.WriteAllText(DataFileName, "");
+            Console.WriteLine("Файл данных создан.");
+        }
+        array = LoadArrayFromFile();
+    }
+
+    static void ShowMenu()
+    {
+        while (true)
+        {
+            Console.WriteLine("\nБинарный поиск в упорядоченном массиве");
+            Console.WriteLine("1. Показать массив");
+            Console.WriteLine("2. Обновить массив");
+            Console.WriteLine("3. Найти элемент");
+            Console.WriteLine("4. Выход");
+            Console.Write("Выберите действие: ");
+
+            switch (Console.ReadLine())
+            {
+                case "1":
+                    PrintArray();
+                    break;
+                case "2":
+                    UpdateArray();
+                    break;
+                case "3":
+                    SearchInArray();
+                    break;
+                case "4":
+                    return;
+                default:
+                    Console.WriteLine("Неверный ввод. Попробуйте снова.");
+                    break;
+            }
+        }
+    }
+
+    static int[] LoadArrayFromFile()
+    {
+        string content = File.ReadAllText(DataFileName);
+        return string.IsNullOrWhiteSpace(content) ?
+            Array.Empty<int>() :
+            ParseArray(content);
+    }
+
+    static void SaveArrayToFile()
+    {
+        File.WriteAllText(DataFileName, string.Join(" ", array));
+        Console.WriteLine("Массив сохранен.");
+    }
+
+    static int[] ParseArray(string input)
+    {
+        try
+        {
+            string[] parts = input.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+            int[] newArray = new int[parts.Length];
+
+            for (int i = 0; i < parts.Length; i++)
+                newArray[i] = int.Parse(parts[i]);
+
+            Array.Sort(newArray);
+            return newArray;
+        }
+        catch
+        {
+            Console.WriteLine("Ошибка: вводите только целые числа через пробел.");
+            return array;
+        }
+    }
+
+    static void PrintArray()
+    {
+        Console.WriteLine("\nТекущий массив:");
+        Console.WriteLine(array.Length == 0 ?
+            "Массив пуст." :
+            string.Join(" ", array));
+    }
+
+    static void UpdateArray()
+    {
+        Console.Write("Введите числа через пробел: ");
+        array = ParseArray(Console.ReadLine());
+        SaveArrayToFile();
+    }
+
+    static void SearchInArray()
+    {
+        if (array.Length == 0)
+        {
+            Console.WriteLine("Массив пуст. Сначала добавьте числа.");
+            return;
+        }
+
+        Console.Write("Введите число для поиска: ");
+        if (!int.TryParse(Console.ReadLine(), out int target))
+        {
+            Console.WriteLine("Некорректный ввод числа.");
+            return;
+        }
+
+        // Измеряем время выполнения
+        var stopwatch = Stopwatch.StartNew();
+        int result = BinarySearch(target);
+        stopwatch.Stop();
+
+        Console.WriteLine(result == -1 ?
+            $"Число {target} не найдено." :
+            $"Число {target} найдено (индекс: {result}).");
+
+        Console.WriteLine($"Время поиска: {stopwatch.Elapsed.TotalMilliseconds} мс");
+    }
+
+    static int BinarySearch(int target)
+    {
+        int left = 0, right = array.Length - 1;
+
+        while (left <= right)
+        {
+            int mid = left + (right - left) / 2;
+
+            if (array[mid] == target) return mid;
+            if (array[mid] < target) left = mid + 1;
+            else right = mid - 1;
+        }
+        return -1;
+    }
+}
